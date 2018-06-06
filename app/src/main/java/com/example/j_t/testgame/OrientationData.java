@@ -8,7 +8,7 @@ import android.hardware.SensorManager;
 
 public class OrientationData implements SensorEventListener {
     private SensorManager manager;
-    private Sensor accelometer;
+    private Sensor accelerometer;
     private Sensor magnometer;
 
     private float[] accelOutput;
@@ -30,12 +30,12 @@ public class OrientationData implements SensorEventListener {
 
     public OrientationData() {
         manager = (SensorManager)Constants.CURRENT_CONTEXT.getSystemService(Context.SENSOR_SERVICE);
-        accelometer = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        accelerometer = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnometer = manager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
     }
 
     public void register() {
-        manager.registerListener(this, accelometer, SensorManager.SENSOR_DELAY_GAME);
+        manager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
         manager.registerListener(this, magnometer, SensorManager.SENSOR_DELAY_GAME);
     }
 
@@ -62,8 +62,7 @@ public class OrientationData implements SensorEventListener {
                 SensorManager.getOrientation(R, orientation);
                 if(startOrientation == null) {
                     startOrientation = new float[orientation.length];
-                    System.arraycopy(orientation, 0, startOrientation,0, orientation.length);
-                    startOrientation = orientation;
+                    System.arraycopy(orientation, 0, startOrientation, 0, orientation.length);
                 }
             }
         }

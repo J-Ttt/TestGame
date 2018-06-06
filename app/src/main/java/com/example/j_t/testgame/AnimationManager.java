@@ -12,12 +12,12 @@ public class AnimationManager {
     }
 
     public void playAnim(int index) {
-        for(int i = 0; 1 < animations.length; i++) {
+        for(int i = 0; i < animations.length; i++) {
             if(i == index) {
                 if(!animations[index].isPlaying())
                 animations[i].play();
-            } else
-                animations[i].stop();
+            }
+                else animations[i].stop();
         }
         animationIndex = index;
     }
