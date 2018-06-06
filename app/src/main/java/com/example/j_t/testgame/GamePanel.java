@@ -12,38 +12,24 @@ import android.view.SurfaceView;
 
 public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     private MainThread thread;
-    private Rect r = new Rect();
 
-    private RectPlayer player;
-    private Point playerPoint;
-    private ObstacleManager obstacleManager;
-
-    private boolean movingPlayer = false;
-
-    private boolean gameOver = false;
-    private long gameOverTime;
+    private SceneManager manager;
 
     public GamePanel(Context context){
         super(context);
         getHolder().addCallback(this);
 
-        thread = new MainThread(getHolder(), this);
-        player = new RectPlayer(new Rect(100, 100, 200, 200), Color.rgb(255, 0, 0));
-        playerPoint = new Point(Constants.SCREEN_WIDTH/2, 3*Constants.SCREEN_HEIGHT/4);
-        player.update(playerPoint);
+        Constants.CURRENT_CONTEXT = context;
 
-        obstacleManager = new ObstacleManager(200, 350, 75, Color.BLACK);
+        thread = new MainThread(getHolder(), this);
+
+        manager = new SceneManager();
 
         setFocusable(true);
 
         }
 
-    public void reset() {
-        playerPoint = new Point(Constants.SCREEN_WIDTH/2, 3*Constants.SCREEN_HEIGHT/4);
-        player.update(playerPoint);
-        obstacleManager = new ObstacleManager(200, 350, 75, Color.BLACK);
-        movingPlayer = false;
-    }
+
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
@@ -53,7 +39,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         thread = new MainThread(getHolder(), this);
-
+        Constants.INIT_TIME = System.currentTimeMillis();
         thread.setRunning(true);
         thread.start();
     }
@@ -61,7 +47,7 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         boolean retry = true;
-        while(true) {
+        while(retry) {
             try {
                 thread.setRunning(false);
                 thread.join();
@@ -72,64 +58,22 @@ public class GamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public boolean onTouchEvent (MotionEvent event) {
-        switch(event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                if(!gameOver && player.getRectangle().contains((int)event.getX(), (int)event.getY()))
-                    movingPlayer = true;
-                if(gameOver && System.currentTimeMillis() - gameOverTime >= 2000) {
-                    reset();
-                    gameOver = false;
-                }
-                break;
-            case MotionEvent.ACTION_MOVE:
-                playerPoint.set((int)event.getX(), (int)event.getY());
-                if(!gameOver && movingPlayer)
-                    playerPoint.set((int)event.getX(), (int)event.getY());
-                break;
 
-            case MotionEvent.ACTION_UP:
-                movingPlayer = false;
-                break;
-        }
+        manager.receiveTouch(event);
 
         return true;
         //return super.onTouchEvent(event);
     }
 
     public void update() {
-        player.update(playerPoint);
-        obstacleManager.update();
-
-        if(obstacleManager.playerCollide(player)) {
-            gameOver = true;
-            gameOverTime = System.currentTimeMillis();
-        }
+        manager.update();
     }
 
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
 
-        canvas.drawColor(Color.WHITE);
-
-        player.draw(canvas);
-        obstacleManager.draw();
-
-        if(gameOver) {
-            Paint paint = new Paint();
-            paint.setTextSize(100);
-            paint.setColor(Color.BLUE);
-            drawCenterText(canvas, paint, "Game Over!");
-        }
+        manager.draw(canvas);
     }
-    private void drawCenterText(Canvas canvas, Paint paint, String text) {
-        paint.setTextAlign(Paint.Align.LEFT);
-        canvas.getClipBounds(r);
-        int cHeight = r.height();
-        int cWidth = r.width();
-        paint.getTextBounds(text, 0, text.length(), r);
-        float x = cWidth / 2f - r.width() / 2f - r.left;
-        float y = cHeight / 2f + r.height() / 2f - r.bottom;
-        canvas.drawText(text, x, y, paint);
-    }
+
 }
